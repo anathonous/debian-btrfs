@@ -17,6 +17,10 @@ Boot from latested stable or testing release of Debian/Ubuntu LiveISO. I persona
 Installed needed packages
 
     apt install debbootstrap cryptsetup arch-install-scripts
+On Gentoo
+````
+   sudo emerge -a dev-util/debootstrap
+````
 
 ## Partitions - Part 1
 
