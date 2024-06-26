@@ -19,7 +19,7 @@ Installed needed packages
     apt install debbootstrap cryptsetup arch-install-scripts
 On Gentoo
 ````
-   sudo emerge -a dev-util/debootstrap
+sudo emerge -av debootstrap cryptsetup
 ````
 
 ## Partitions - Part 1
@@ -32,7 +32,9 @@ cfdisk /dev/nvme0n1
 ````
  - create a new partition 2G or more. Change type to EFI System.
  - create a new partition 8G or more. Leave type as Linux.
- - Create a new partition 100%FREE. Use remainder of drive. Leave type as Linux
+ - Create a new partition 100%FREE. Use remainder of drive. Leave type as Linux.
+ - Save and write to disk
+ - Ext
 
 ### Preparing partitions
 
@@ -42,7 +44,7 @@ Format the first partition as EFI (boot) and set needed flags:
     parted /dev/nvme0n1 set 1 esp on
     parted /dev/nvme0n1 set 1 boot on
 
-Prepare the main encrypted partition
+Prepare the second encrypted swap partition
 
     cryptsetup -y -v --type luks2 luksFormat --label DEBIANSWAP /dev/nvme0n1p2
 
@@ -53,65 +55,50 @@ Open the main partition with a name "OPEN"
     cryptsetup open /dev/nvme0n1p2 DEBIANSWAP 
     <passphrase>
 
-Format the main partition as btrfs
+Format the partition as swap
 
-    mkfs.btrfs /dev/mapper/cryptroot
-
-
+````
+mkswap /dev/mapper/DEBIANSWAP
+swapon /dev/mapper/DEBIANSWAP
+````
 
 ## Partitions - Part 2
 
-### Creating BTRFS subvolumes
+### Creating BTRFS main and subvolumes
+````
+cryptsetup luksFormat -s 256 -c aes-xts-plain64 /dev/nvme0n1p3
+cryptsetup luksOpen /dev/nvme0n1p3 DEBIANLUKS
+<passphrase>
+mkfs.btrfs -L DEBIAN /dev/mapper/DEBIANLUKS
+mkdir /mnt/debian
+mkdir /mnt/debianbtrfs
+mount -t btrfs -o defaults,noatime,compress=lzo,autodefrag /dev/mapper/DEBIANLUKS /mnt/debianbtrfs
+````
 
 Mount main partition temporarily
 
-    mount /dev/mapper/cryptroot /mnt
 
 Create subvolumes for rootfs, home, var and snapshots
 
-    btrfs subvolume create /mnt/@
-    btrfs subvolume create /mnt/@home
-    btrfs subvolume create /mnt/@snapshots
-    btrfs subvolume create /mnt/@swap
-    
-Unmount the partition
-
-    umount /mnt
+    btrfs subvol create /mnt/debianbtrfs/debianroot
+    btrfs subvol create /mnt/debianbtrfs/debianhome
 
 ### Re-mounting subvolumes as partitions to /mnt
 
-    mount -o noatime,compress=zstd:1,subvol=@ /dev/mapper/cryptroot /mnt
-    mkdir -p /mnt/{boot,home,.snapshots}
-    mkdir /mnt/boot/efi
-    mount /dev/nvme0n1p1 /mnt/boot/efi
+    mount -t btrfs -o defaults,noatime,compress=lzo,autodefrag,subvol=debianroot /dev/mapper/DEBIANLUKS /mnt/debian/
+    mkdir /mnt/debian/home
+    mount -t btrfs -o defaults,noatime,compress=lzo,autodefrag,subvol=debianhome /dev/mapper/DEBIANLUKS /mnt/debian/home
+    mkdir /mnt/debian/boot
     mount -o noatime,compress=zstd:1,subvol=@home /dev/mapper/cryptroot /mnt/home
     mount -o noatime,compress=zstd:1,subvol=@snapshots /dev/mapper/cryptroot /mnt/.snapshots
     
-### Setup your swapfile, change the `count` value in the `dd` command to meet your needs
-
-    mkdir -p /mnt/swap
-    mount -o subvol=@swap /dev/mapper/cryptroot /mnt/swap
-    touch /mnt/swap/swapfile
-    chmod 600 /mnt/swap/swapfile
-    chattr +C /mnt/swap/swapfile
-    btrfs property set ./swapfile compression none
-    dd if=/dev/zero of=/mnt/swap/swapfile bs=1M count=16384
-    mkswap /mnt/swap/swapfile
-    swapon /mnt/swap/swapfile
-
-
-
 ## Base installation
 
 ### Bootstrapping a base-system
 
 With all partitions mounted, run
 
-    debootstrap --arch amd64 sid /mnt
-
-Create a child subvolme for `/var/log` contained inside of your `@` subvolme.  These will be auto-mounted with `@` so there is no need to add it separately to `/etc/fstab`.  This will keep our log files from being included in our snapshots so our log files remain untouched if we ever restore our rootfs from snapshot.  __WARNING:__ Do not do this for all of `/var`, as many subvolders in `/var` such as `/var/lib` need to stay sinked with applications installed in `/usr`.  Creating a separate subvolume for `/var` is common in ZFS but ZFS handles snapshots and restorations differently than BTRFS.  So do not blindly following ZFS subvolume suggestions for BTRFS.
-
-    btrfs subvolume create /mnt/var/log
+    debootstrap  --arch=amd64 testing /mnt/debian http://deb.debian.org/debian
 
 ### Preparing the `chroot` environment
 
@@ -121,20 +108,34 @@ Copy the mounted file systems table
 
 Bind the pseudo-filesystems for chroot
 
-    mount -o bind /dev /mnt/dev
-    mount -o bind /dev/pts /mnt/dev/pts
-    mount -o bind /proc /mnt/proc
-    mount -o bind /sys /mnt/sys
+    mount -o bind /dev /mnt/debian/dev/
+    mount -o bind /proc /mnt/debian/proc
+    mount -o bind /sys /mnt/debian/sys
 
-### Generating fstab
+### Modifying fstab
+````
+nano /mnt/debian/etc/fstab
+````
 
-Run `genfstab` from arch-install-scripts we installed earlier to help setup fstab for us
+````
+UUID=952C-65CB	/boot	vfat	umask=0077	0 1
+LABEL=DEBIAN	/	btrfs	defaults,noatime,compress=lzo,autodefrag,discard=async,subvol=debianroot	0 0
+LABEL=DEBIAN	/home	btrfs	defaults,noatime,compress=lzo,autodefrag,discard=async,subvol=debianhome	0 0
+shm        /dev/shm        tmpfs        nodev,nosuid,noexec  0 0
+/dev/mapper/DEBIANSWAP	none	swap	sw,discard	0 0
+````
+Something like this should get you by. To find your blkid of you FAT32 EFI partition. Use blkid.
 
-    genfstab -U /mnt >> /mnt/etc/fstab
+Copy a few more files over for internet connectivity.
+
+````
+sudo cp /etc/resolv.conf /mnt/debian/etc/resolv.conf
+
+````
 
 ### Changing root to the new system
 
-    chroot /mnt
+    sudo chroot /mnt/debian_root /bin/bash -l
 
 
 
