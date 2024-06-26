@@ -40,7 +40,7 @@ cfdisk /dev/nvme0n1
 
 Format the first partition as EFI (boot) and set needed flags:
 
-    mkfs.fat -F 32 /dev/nvme0n1p2
+    mkfs.fat -F 32 /dev/nvme0n1p1
     parted /dev/nvme0n1 set 1 esp on
     parted /dev/nvme0n1 set 1 boot on
 
