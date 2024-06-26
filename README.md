@@ -206,18 +206,6 @@ Add user to sudo group
 
     usermod -aG sudo,adm,dialout,cdrom,floppy,audio,dip,video,plugdev,users,netdev,bluetooth,wireshark duder
 
-## Setting up bootloader
-
-### Installing bootloader utils
-
-    apt install efi-grub btrfs-progs cryptsetup-initramfs
-    
-### Optional package for extra protection suspsended laptops
-
-One attack vector for encrypted filesystems on laptops is to steal the crypto keys from RAM while the system is suspected. The keys are left in RAM to maintain access to the filesystem upon waking.  Linux has LUKS2 support to remove the cypto keys from memory to close this vulnerability, but it does require you to type your LUKS2 passphrase when you wake it from suspend.  If you want this extra protection:
-    
-    apt install cryptsetup-suspend
-
 ### Setting up crypttab
 
 Use `blkid` to get the `UUID` of your encrypted partition, which is `/dev/nvme0n1p3` in this example
@@ -235,6 +223,18 @@ Create an entry in the `/etc/crypttab` file
 
     DEBIANSWAP UUID=uuidofdisk /etc/swap.key luks
     DEBIANLUKS UUID=uuidofdisk none luks
+
+## Setting up bootloader
+
+### Installing bootloader utils
+
+    apt install efi-grub btrfs-progs cryptsetup-initramfs
+    
+### Optional package for extra protection suspsended laptops
+
+One attack vector for encrypted filesystems on laptops is to steal the crypto keys from RAM while the system is suspected. The keys are left in RAM to maintain access to the filesystem upon waking.  Linux has LUKS2 support to remove the cypto keys from memory to close this vulnerability, but it does require you to type your LUKS2 passphrase when you wake it from suspend.  If you want this extra protection:
+    
+    apt install cryptsetup-suspend
 
 ### Setup Grub
 
