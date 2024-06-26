@@ -1,4 +1,4 @@
-<img src=debian-logo.png width="300">
+<center><img src=debian-logo.png width="300"></center>
 
 Manually install Debian Luks with BTRFS subvolumes: 
 
