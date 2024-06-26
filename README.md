@@ -62,8 +62,6 @@ mkswap /dev/mapper/DEBIANSWAP
 swapon /dev/mapper/DEBIANSWAP
 ````
 
-## Partitions - Part 2
-
 ### Creating BTRFS main and subvolumes
 ````
 cryptsetup luksFormat -s 256 -c aes-xts-plain64 /dev/nvme0n1p3
