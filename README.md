@@ -46,7 +46,7 @@ Format the first partition as EFI (boot) and set needed flags:
 
 Prepare the second encrypted swap partition
 ````
-    cryptsetup luksFormat -s 256 -c aes-xts-plain64 /dev/nvme0n1p10
+    cryptsetup luksFormat -s 256 -c aes-xts-plain64 /dev/nvme0n1p2
 ````
 Respond with a "YES" and enter a passphrase twice (-y provides this).
 
