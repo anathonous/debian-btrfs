@@ -23,8 +23,9 @@ Installed needed packages
 ### Creating partitions
 
 Perform formatting and partitioning with cfdisk. 
+````
 cfdisk /dev/nvme0n1
-    mkfs.fat -F 32 /dev/nvme0n1p2
+````
  - create a new partition 2G or more. Change type to EFI System.
  - create a new partition 8G or more. Leave type as Linux.
  - Create a new partition 100%FREE. Use remainder of drive. Leave type as Linux
