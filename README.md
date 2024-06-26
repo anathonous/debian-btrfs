@@ -87,8 +87,7 @@ Create subvolumes for rootfs, home, var and snapshots
     mkdir /mnt/debian/home
     mount -t btrfs -o defaults,noatime,compress=lzo,autodefrag,subvol=debianhome /dev/mapper/DEBIANLUKS /mnt/debian/home
     mkdir /mnt/debian/boot
-    mount -o noatime,compress=zstd:1,subvol=@home /dev/mapper/cryptroot /mnt/home
-    mount -o noatime,compress=zstd:1,subvol=@snapshots /dev/mapper/cryptroot /mnt/.snapshots
+    mount /dev/nvme0n1p1 /mnt/debian/boot
     
 ## Base installation
 
