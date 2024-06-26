@@ -282,7 +282,7 @@ Assuming you are now logged into your newly created useraccount (and not root)
 
 ### Connecting to the internet
 
-As long as you installed gnome-core as recommended in the previous steps, you can use the GUI to setup your Internet.
+As long as you installed task-gnome-desktop as recommended in the previous steps, you can use the GUI to setup your Internet.
 
 If you didn't install a DE like Gnome, you can use `nmtui` to setup your network at the command prompt.
 
@@ -296,18 +296,6 @@ If you didn't install a DE like Gnome, you can use `nmtui` to setup your network
     sudo pam-auth-update    ### Enable fingerprint authentication
     fprintd-enroll
     fprintd-verify
-
-### If you want to use rEFInd as your bootloader
-
-Personally, I recommend just staying with systemd-boot in most scenarios since it supports multi-boot out of the box and rEFInd still needs it to boot into the encrypted rootfs.  But the one scenario I personally use rEFInd is if you have dual hard drives, each with an EFI partition with separate bootloaders.  In this instance, rEFInd will auto-detect all the bootloaders on both drives allowing an easy path to boot whatever OS is there.  For me, this second drive is a 1TB USB module that I can insert into the removable USB modules of my Framework laptop, which contains several other Linux distro installs that I play with.  rEFInd allows to me boot to any of them directly if it detects the drive is inserted.  This also allows me to install anything I with to the USB module and and its EFI partition without modifying my main drive's EFI partition.
-
-If you decide this is for you, then:
-
-    sudo apt install refind
-    sudo refind-install
-    sudo refind-mkdefault
-
-Reboot and verify rEFInd comes up and that it can see/use your systemd-boot loader.
 
 ## Working with BTRFS snapshots
 
