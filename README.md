@@ -109,6 +109,19 @@ Bind the pseudo-filesystems for chroot
     mount -o bind /proc /mnt/debian/proc
     mount -o bind /sys /mnt/debian/sys
 
+### Changing root to the new system
+
+Copy over resolve.conf for internet.
+````
+sudo cp /etc/resolv.conf /mnt/debian/etc/resolv.conf
+
+````
+
+
+    sudo chroot /mnt/debian_root /bin/bash -l
+
+## Configuration
+
 ### Modifying fstab
 ````
 nano /etc/fstab
@@ -123,19 +136,6 @@ shm        /dev/shm        tmpfs        nodev,nosuid,noexec  0 0
 ````
 Something like this should get you by. To find your blkid of you FAT32 EFI partition. Use blkid.
 
-
-### Changing root to the new system
-
-Copy over resolve.conf for internet.
-````
-sudo cp /etc/resolv.conf /mnt/debian/etc/resolv.conf
-
-````
-
-
-    sudo chroot /mnt/debian_root /bin/bash -l
-
-## Configuration
 
 ### Setting `HOSTNAME` for your machine, this example uses `gtfo`
 
