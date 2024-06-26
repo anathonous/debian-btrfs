@@ -16,7 +16,7 @@ Boot from latested stable or testing release of Debian/Gentoo LiveISO. I persona
 
 Installed needed packages
 
-    apt install debbootstrap cryptsetup arch-install-scripts
+    apt install debbootstrap cryptsetup
 On Gentoo
 ````
 sudo emerge -av debootstrap cryptsetup
