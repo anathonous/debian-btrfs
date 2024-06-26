@@ -1,4 +1,4 @@
-<p align="center"><img src=debian-logo.png width="300"></p><br>
+w<p align="center"><img src=debian-logo.png width="300"></p><br>
 
 Manually install Debian trixie/testing with LUKS2 and BTRFS with subvolumes and Encrypted Swap: 
 
@@ -165,7 +165,7 @@ Choose `en_US.UTF-8` from the list of locales, or whatever is appropriate for yo
 ### Install your your desktop environment
 
     apt update
-    apt-get install linux-image-amd64 linux-headers-amd64 firmware-linux-free firmware-misc-nonfree cryptsetup-initramfs console-setup sudo firmware-misc-nonfree  firmware-linux-nonfree firmware-intel-sound firmware-linux cryptsetup-suspend btrfs-progs intel-media-va-driver-non-free
+    apt-get install linux-image-amd64 linux-headers-amd64 firmware-linux-free firmware-misc-nonfree cryptsetup-initramfs console-setup sudo firmware-misc-nonfree  firmware-linux-nonfree firmware-intel-sound firmware-linux cryptsetup-suspend btrfs-progs intel-media-va-driver-non-free systemd-cryptsetup
 
     
 Install whichever desktop environment you want, my prefernce is Gnome:
