@@ -1,3 +1,4 @@
+[img]debian-logo.png[/img]
 For directly installing Debian Sid not supported by the Debian installer, namely: 
 
  - Single LUKS2 encrypted partition which contains the full installation
