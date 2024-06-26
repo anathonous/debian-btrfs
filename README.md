@@ -1,6 +1,6 @@
-![alt text](https://github.com/treesgreens/debian-btrfs/edit/main/debian-logo.png)
+!w[alt text](https://github.com/treesgreens/debian-btrfs/edit/main/debian-logo.png)
 
-For directly installing Debian Sid not supported by the Debian installer, namely: 
+Manually install Debian Luks with BTRFS subvolumes: 
 
  - Single LUKS2 encrypted partition which contains the full installation
  - Single BTRFS filesystem (integrated home partition)
