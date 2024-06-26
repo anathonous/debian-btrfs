@@ -45,9 +45,9 @@ Format the first partition as EFI (boot) and set needed flags:
     parted /dev/nvme0n1 set 1 boot on
 
 Prepare the second encrypted swap partition
-
-    cryptsetup -y -v --type luks2 luksFormat --label DEBIANSWAP /dev/nvme0n1p2
-
+````
+    cryptsetup luksFormat -s 256 -c aes-xts-plain64 /dev/nvme0n1p10
+````
 Respond with a "YES" and enter a passphrase twice (-y provides this).
 
 Open the main partition with a name "OPEN"
