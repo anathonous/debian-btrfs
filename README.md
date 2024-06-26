@@ -286,7 +286,7 @@ If you didn't install a DE like Gnome, you can use `nmtui` to setup your network
 
 ### Install whatever other software you need or want.  I'd suggest this at a minimum:
 
-    sudo apt install git curl wget wireshark
+    sudo apt install git curl wget
 
 ### If you have a fingerprint reader:
     
@@ -295,62 +295,14 @@ If you didn't install a DE like Gnome, you can use `nmtui` to setup your network
     fprintd-enroll
     fprintd-verify
 
-## Working with BTRFS snapshots
-
-### When to create BTRFS subvolumes
-
-BTRFS snapshots allow you to backup and restore all files in a BTRFS subvolume.  Sometimes there are subdirectory trees that you do not want included in your backup/restore because they are variable data like logs, because they are backed up elsewhere, or because you want to have a different BTRFS backup scheme for that subdirectory tree..  I have found this to be the primariy reason for creating BTRFS subvolumes. 
-
-### Subvolumes for the main OS
-
-For our root filesystem, this guide has you create the following subvolumes for the following reasons:
-
- - Subvolume `@`, mounted to `/` for our root filesystem so we can back it up upon package installs/updates
- - Subvolume `@home`, mounted to `/home/` for your main user so we can back it up on a fixed schedule, separate from our root filesystem.  If your are installing this on a machine with mulitple different users, you could instead create a separate BTRFS subvolume for each user under home instead of `/home/` itself. 
- - Subvolume `@/var/log` so we don't loose log history of our root filesystem restorations.  Unlike the other two, this is a child subvolme to `@` so does not have its own entry in `/etc/fstab`.
-
-If you use container technology such as Docker or LXC/LXD, these tools will probably create a few more child subvolumes under `@` for each of your containers.
-
-### Subvolumes in home folders
-
-For my home folder, I create a separate subvolume for `~/Downloads` so keep thoes disposable files from being backedup.  BTW, you do not need to use `sudo` when creating subvolumes in your user's home directory.
-
-    rm ~/Downloads
-    btrfs create subvolume ~/Downloads
-   
-If you use a product to sync files with Google Drive or some other cloud storage, I recommend keeping a separate subvolume to keep them from your home folder backups.  I personally use Insync to sync certain files from Google Drive, so I create:
-    
-    btrfs create subvolume ~/Google
-    
-If you do any software development, you are probably are saving your sourcecode elsewhere using tools like git.  Therefore I usually exclude those folders from my home user backups with:
-
-    btrfs create subvolume ~/GitHub
-    btrfs create subvolume ~/go
-    
-If you use virtualization products, at a minimum you need to turn off CoW features of BTRFS to avoid their virtualdisk block writes from thrashing your BTRFS filesystem and SSD.  I also like creating separate subvolumes so my home folder backups don't backup the VMs as I consider all of my VMs disposable.  Here is what I do for the three virtualization products I use.  This will automatically get Gnome Boxes saving VMs to the right place, but you will need to manually configure VMware and VirtualBox to create their VMs in the folders we create for them below.
-    
-    btrfs create subvolume ~/VMs
-    mkdir ~/VMs/VirtualBox ~/VMs/VMware ~/VMs/Gnome-Boxes
-    chattr +C ~/VMs ~/VMs/*
-    ln -s ~/VMs/Gnome-Boxes ~/.local/share/gnome-boxes/images
+### Debian Astro
 
 
-# Emergency Recovery
+I use Debian Astro. It takes up about 7 gigs.
+````
+apt-get install astro-all
+````
 
-Boot from a Debian/Ubuntu Live CD, open a terminal, `sudo -s` to root, then:
+Done.
 
-    sudo -i
-    cryptsetup open /dev/nvme0n1p2 cryptroot
-    mount -o noatime,compress=zstd:1,subvol=@ /dev/mapper/cryptroot /mnt
-    mount /dev/nvme0n1p1 /mnt/boot/efi
-    mount -o noatime,compress=zstd:1,subvol=@home /dev/mapper/cryptroot /mnt/home
-    mount -o noatime,compress=zstd:1,subvol=@snapshots /dev/mapper/cryptroot /mnt/.snapshots
-    mount -o subvol=@swap /dev/mapper/cryptroot /mnt/swap
-    swapon /mnt/swap/swapfile
-    cp /etc/mtab /mnt/etc/mtab
-    mount -o bind /dev /mnt/dev
-    mount -o bind /dev/pts /mnt/dev/pts
-    mount -o bind /proc /mnt/proc
-    mount -o bind /sys /mnt/sys
-    chroot /mnt
 
