@@ -2,24 +2,17 @@
 
 Manually install Debian Luks with BTRFS subvolumes: 
 
- - Single LUKS2 encrypted partition which contains the full installation
- - Single BTRFS filesystem (integrated home partition)
- - Encrypted swapfile in BTRFS subvolume (supports laptop suspend but not hibernate)
- - Uses systemd-boot bootloader (instead of Grub2, also optional rEFInd instructions)
- - Minimal Gnome install (plus instructions for any other DE you wish)
- - Proper user groups for common security tools like sudo-less Wireshark, etc...
- - Optional removal of crypto keys from RAM during laptop suspend
- - Optional configurations for laptops (including fingerprint readers)
- - Optional dualboot to Windows
- - Emergency recovery steps for failed bootloaders or other problems
-
-Originally created in 2021-11, check GitHub Gist Revisions for last update
+ - EFI Boot Partition
+ - LUKS2 Swap Partition
+ - LUKS2 Container
+ - BTRFS Partition
+ - 2 BTRFS Subvolumes
 
 # Debian installation (debootstrap)
 
 ## Pre-installation setup
 
-Boot from latested stable or testing release of Debian/Ubuntu LiveISO.
+Boot from latested stable or testing release of Debian/Ubuntu LiveISO. I personally used a working Gentoo Environment.
 
 Installed needed packages
 
@@ -29,43 +22,29 @@ Installed needed packages
 
 ### Creating partitions
 
-Perform formatting and partitioning with Gnome Disks or `parted`.  
-
- - Format drive using `gpt` partition table
- - Make partitions but do not create filesystems (If using Gnome Disks, choose filesystem `other` then `No Filesystem`)
- - Label your partitions
-
-Suggested partitions on example drive `/dev/nvme0n1`:
-
- - /dev/nvme0n1p1 with label `EFI` for UEFI (suggested 1GB, systemd-boot stores kernel+initrd here)
- - /dev/nvme0n1p2 with label `Debian` install (will include /boot and swap)
- - optional extra unpartitioned free space for Windows
- 
-Verify partition names with `lsblk` and write down partion UUIDs from `blkid` before proceeding.
-
-Open a terminal and `sudo -s` to root.
-
-Install the needed packages:
-
-    apt install debootstrap
+Perform formatting and partitioning with cfdisk.  
+ cfdisk /dev/nvme0n1
+ - create a new partition 2G or more. Change type to EFI System.
+ - create a new partition 8G or more. Leave type as Linux.
+ - Create a new partition 100%FREE. Use remainder of drive. Leave type as Linux
 
 ### Preparing partitions
 
 Format the first partition as EFI (boot) and set needed flags:
 
-    mkfs.fat -F 32 -n EFI /dev/nvme0n1p1
+    mkfs.fat -F 32 /dev/nvme0n1p2
     parted /dev/nvme0n1 set 1 esp on
     parted /dev/nvme0n1 set 1 boot on
 
 Prepare the main encrypted partition
 
-    cryptsetup -y -v --type luks2 luksFormat --label Debian_Sid /dev/nvme0n1p2
+    cryptsetup -y -v --type luks2 luksFormat --label DEBIANSWAP /dev/nvme0n1p2
 
 Respond with a "YES" and enter a passphrase twice (-y provides this).
 
-Open the main partition with a name "cryptroot"
+Open the main partition with a name "OPEN"
 
-    cryptsetup open /dev/nvme0n1p2 cryptroot
+    cryptsetup open /dev/nvme0n1p2 DEBIANSWAP 
     <passphrase>
 
 Format the main partition as btrfs
