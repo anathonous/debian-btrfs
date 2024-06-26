@@ -194,7 +194,7 @@ If you are installing this on a laptop:
 
 ### Creating a non-root user
 
-Create your main user.  Replace `meeas` with your username below.
+Create your main user.  Replace `duder` with your username below.
 
     useradd duder -m -c "Duder" -s /bin/bash
 
@@ -229,12 +229,6 @@ Create an entry in the `/etc/crypttab` file
 ### Installing bootloader utils
 
     apt install efi-grub btrfs-progs cryptsetup-initramfs
-    
-### Optional package for extra protection suspsended laptops
-
-One attack vector for encrypted filesystems on laptops is to steal the crypto keys from RAM while the system is suspected. The keys are left in RAM to maintain access to the filesystem upon waking.  Linux has LUKS2 support to remove the cypto keys from memory to close this vulnerability, but it does require you to type your LUKS2 passphrase when you wake it from suspend.  If you want this extra protection:
-    
-    apt install cryptsetup-suspend
 
 ### Setup Grub
 
