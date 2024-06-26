@@ -137,7 +137,7 @@ shm        /dev/shm        tmpfs        nodev,nosuid,noexec  0 0
 Something like this should get you by. To find your blkid of you FAT32 EFI partition. Use blkid.
 
 
-### Setting `HOSTNAME` for your machine, this example uses `gtfo`
+### Setting `HOSTNAME` for your machine, this example uses `astro`
 
     echo 'Astro' > /etc/hostname
     echo '127.0.1.1 astro.localdomain astro' >> /etc/hosts
