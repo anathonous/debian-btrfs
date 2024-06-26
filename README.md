@@ -218,7 +218,7 @@ One attack vector for encrypted filesystems on laptops is to steal the crypto ke
     
     apt install cryptsetup-suspend
 
-### Setting up encryption parameters
+### Setting up crypttab
 
 Use `blkid` to get the `UUID` of your encrypted partition, which is `/dev/nvme0n1p3` in this example
 
@@ -228,6 +228,7 @@ openssl genrsa -out /etc/swap.key 4096
 chmod -v 0400 /etc/swap.key
 chown root:root /etc/swap.key
 cryptsetup luksAddKey /dev/nvme0n1p10 /etc/swap.key
+blkid
 ````
 
 Create an entry in the `/etc/crypttab` file
