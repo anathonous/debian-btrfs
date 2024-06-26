@@ -222,6 +222,14 @@ One attack vector for encrypted filesystems on laptops is to steal the crypto ke
 
 Use `blkid` to get the `UUID` of your encrypted partition, which is `/dev/nvme0n1p3` in this example
 
+````
+dd bs=512 count=4 if=/dev/random of=/etc/swap.key iflag=fullblock
+openssl genrsa -out /etc/swap.key 4096
+chmod -v 0400 /etc/swap.key
+chown root:root /etc/swap.key
+cryptsetup luksAddKey /dev/nvme0n1p10 /etc/swap.key
+````
+
 Create an entry in the `/etc/crypttab` file
 
     DEBIANSWAP UUID=a06d2110-b918-4e54-be85-f8a91e713ae0 /etc/swap.key luks
