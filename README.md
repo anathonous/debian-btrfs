@@ -12,7 +12,7 @@ Manually install Debian trixie/testing with LUKS2 and BTRFS with subvolumes and 
 
 ## Pre-installation setup
 
-Boot from latested stable or testing release of Debian/Ubuntu LiveISO. I personally used a working Gentoo Environment.
+Boot from latested stable or testing release of Debian/Gentoo LiveISO. I personally used a working Gentoo Environment.
 
 Installed needed packages
 
