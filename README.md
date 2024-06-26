@@ -1,6 +1,6 @@
 <p align="center"><img src=debian-logo.png width="300"></p><br>
 
-Manually install Debian Luks with BTRFS subvolumes: 
+Manually install Debian trixie/testing with LUKS2 and BTRFS with subvolumes and Encrypted Swap: 
 
  - EFI Boot Partition
  - LUKS2 Swap Partition
@@ -114,7 +114,7 @@ Bind the pseudo-filesystems for chroot
 
 ### Modifying fstab
 ````
-nano /mnt/debian/etc/fstab
+nano /etc/fstab
 ````
 
 ````
@@ -126,20 +126,31 @@ shm        /dev/shm        tmpfs        nodev,nosuid,noexec  0 0
 ````
 Something like this should get you by. To find your blkid of you FAT32 EFI partition. Use blkid.
 
-Copy a few more files over for internet connectivity.
 
+### Changing root to the new system
+
+Copy over resolve.conf for internet.
 ````
 sudo cp /etc/resolv.conf /mnt/debian/etc/resolv.conf
 
 ````
 
-### Changing root to the new system
 
     sudo chroot /mnt/debian_root /bin/bash -l
 
-
-
 ## Configuration
+
+### Setting `HOSTNAME` for your machine, this example uses `gtfo`
+
+    echo 'Astro' > /etc/hostname
+    echo '127.0.1.1 astro.localdomain astro' >> /etc/hosts
+
+### Setting up `apt` sources
+
+Update `/etc/apt/sources.list` to contain the following:
+
+    deb https://deb.debian.org/debian testing main contrib non-free non-free-firmware
+    apt update
 
 ### Setting timezone
 
@@ -149,29 +160,20 @@ Choose an appropriate region.
 
 ### Setting locale
 
+    apt-get install locales
     dpkg-reconfigure locales
 
 Choose `en_US.UTF-8` from the list of locales, or whatever is appropriate for you.
 
-### Setting `HOSTNAME` for your machine, this example uses `gtfo`
-
-    echo 'gtfo' > /etc/hostname
-    echo '127.0.1.1 gtfo.localdomain gtfo' >> /etc/hosts
-
-### Setting up `apt` sources
-
-Update `/etc/apt/sources.list` to contain the following:
-
-    deb https://deb.debian.org/debian sid main contrib non-free
-
 ### Install your your desktop environment
 
     apt update
-    apt install linux-headers-amd64 firmware-iwlwifi firmware-linux firmware-linux-nonfree sudo vim bash-completion command-not-found plocate systemd-timesyncd usbutils hwinfo v4l-utils
+    apt-get install linux-image-amd64 linux-headers-amd64 firmware-linux-free firmware-misc-nonfree cryptsetup-initramfs console-setup sudo firmware-misc-nonfree  firmware-linux-nonfree firmware-intel-sound firmware-linux cryptsetup-suspend btrfs-progs intel-media-va-driver-non-free
+
     
-Install whichever desktop environment you want, my prefernce is a basic, bare-bones install of Gnome:
+Install whichever desktop environment you want, my prefernce is Gnome:
     
-    apt install gnome-core
+    apt install task-gnome-desktop ufw gufw
     
 Other Desktop Environment (DE) options are:
 
@@ -185,7 +187,7 @@ Other Desktop Environment (DE) options are:
     
 If you are installing this on a laptop:
 
-    apt install task-laptop powertop gnome-power-manager linux-cpupower cpupower-gui
+    apt install task-laptop powertop gnome-power-manager linux-cpupower cpupower-gui laptop-mode-tools
 
 ## Creating users and groups
 
@@ -197,23 +199,21 @@ If you are installing this on a laptop:
 
 Create your main user.  Replace `meeas` with your username below.
 
-    useradd meeas -m -c "Justin Searle" -s /bin/bash
+    useradd duder -m -c "Duder" -s /bin/bash
 
 Set password for your user
 
-    passwd meeas
+    passwd duder
 
 Add user to sudo group
 
-    usermod -aG sudo,adm,dialout,cdrom,floppy,audio,dip,video,plugdev,users,netdev,bluetooth,wireshark meeas
-
-
+    usermod -aG sudo,adm,dialout,cdrom,floppy,audio,dip,video,plugdev,users,netdev,bluetooth,wireshark duder
 
 ## Setting up bootloader
 
 ### Installing bootloader utils
 
-    apt install efibootmgr btrfs-progs cryptsetup-initramfs
+    apt install efi-grub btrfs-progs cryptsetup-initramfs
     
 ### Optional package for extra protection suspsended laptops
 
@@ -223,50 +223,34 @@ One attack vector for encrypted filesystems on laptops is to steal the crypto ke
 
 ### Setting up encryption parameters
 
-Use `blkid` to get the `UUID` of your encrypted partition, which is `/dev/nvme0n1p2` in this example
+Use `blkid` to get the `UUID` of your encrypted partition, which is `/dev/nvme0n1p3` in this example
 
 Create an entry in the `/etc/crypttab` file
 
-    cryptroot <tab> UUID=uuid-of-encrypted-partition <tab> none <tab> luks
+    DEBIANSWAP UUID=a06d2110-b918-4e54-be85-f8a91e713ae0 /etc/swap.key luks
+    DEBIANLUKS UUID=63f8dc5d-026d-4528-b85c-0a292adac2dd none luks
 
-### Setup systemd-boot (instead of Grub)
+### Setup Grub
 
-If you want to use rEFInd as your bootloader, you will still need to do these steps as rEFInd will need systemd-boot to access the LUKS2 encrypted root filesystem.
+    grub-install --target=x86_64-efi --efi-directory=/boot
+Modify /etc/defaults/grub to look like this depending on the UUID of your LUKS2 root partition.
 
-    bootctl install
-    mkdir -p /boot/efi/`cat /etc/machine-id`
-    kernel-install add `uname -r` /boot/vmlinuz-`uname -r`
-    
-    # Previous comamnds just in case someone needs them
-    bootctl install
-    V=`ls /boot/vmlinuz-* | cut -d - -f 2-`
-    kernel-install add $V /boot/vmlinuz-$V
-    
-### Setup auto-updating of system-boot
-
-Create and set permissions on the auto-install script
-
-    touch /etc/kernel/postinst.d/zz-update-systemd-boot
-    chmod +x /etc/kernel/postinst.d/zz-update-systemd-boot
-    
-Edit this file to contain the following text:
-
-    #!/bin/sh
-    set -e
-    /usr/bin/kernel-install add "$1" "$2"
-    exit 0
-    
-Create and set permissions on the auto-remove script
-    
-    touch /etc/kernel/postrm.d/zz-update-systemd-boot
-    chmod +x /etc/kernel/postrm.d/zz-update-systemd-boot
-    
-Edit this file to contain the following text:
-
-    #!/bin/sh
-    set -e
-    /usr/bin/kernel-install remove "$1"
-    exit 0
+````
+GRUB_CMDLINE_LINUX_DEFAULT="crypt_root=UUID=63f8dc5d-026d-4528-b85c-0a292adac2dd quiet splash"
+````
+Make a grub.cfg file.
+````
+grub-mkconfig -o /boot/grub/grub.cfg
+````
+### Enable Intel Video Acceleration
+I'm using a Thinkpad X1C 
+````
+nano /etc/modprobe.d/intel.conf
+````
+````
+options i915 enable_guc=2
+````
+Write changes.
 
 ### Testing your new bootloader
 
@@ -282,7 +266,7 @@ Reboot
 
     reboot
 
-If your bootloader fails and does not allow you to boot into your new system, follow the istructrions in the [Emergency Recovery] sections below to try this section again.
+If your bootloader fails and does not allow you to boot into your new system, follow the same instructions to remount all volumes and see if you are having issues with BLKID's.
 
 
 
