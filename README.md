@@ -1,5 +1,5 @@
 <p align="center"><img src=debian-logo.png width="300"></p><br>
-
+# Debian with LUKS2 on BTRFS with subvolumes and Encrypted Swap.
 Manually install Debian trixie/testing with LUKS2 and BTRFS with subvolumes and Encrypted Swap: 
 
  - EFI Boot Partition
@@ -22,7 +22,7 @@ On Gentoo
 sudo emerge -av debootstrap cryptsetup
 ````
 
-## Partitions - Part 1
+## Partitions
 
 ### Creating partitions
 
