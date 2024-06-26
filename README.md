@@ -233,8 +233,8 @@ blkid
 
 Create an entry in the `/etc/crypttab` file
 
-    DEBIANSWAP UUID=a06d2110-b918-4e54-be85-f8a91e713ae0 /etc/swap.key luks
-    DEBIANLUKS UUID=63f8dc5d-026d-4528-b85c-0a292adac2dd none luks
+    DEBIANSWAP UUID=uuidofdisk /etc/swap.key luks
+    DEBIANLUKS UUID=uuidofdisk none luks
 
 ### Setup Grub
 
